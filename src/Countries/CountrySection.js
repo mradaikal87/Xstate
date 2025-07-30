@@ -146,7 +146,7 @@ function CountrySection() {
 
       {selectedCountry && selectedState && selectedCity && (
         <p data-testid="selected-location">
-          Selected: <strong>{`${selectedCity}, ${selectedState}, ${selectedCountry}`}</strong>
+          You selected <strong>{`${selectedCity}, ${selectedState}, ${selectedCountry}`}</strong>
         </p>
       )}
     </div>
