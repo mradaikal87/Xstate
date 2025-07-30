@@ -4,21 +4,7 @@ import styles from "./CountrySection.module.css";
 const fetchCountries = async () => {
   const response = await fetch("https://crio-location-selector.onrender.com/countries");
   if (!response.ok) throw new Error("Failed to fetch countries");
-
-  const rawCountries = await response.json();
-
-  const uniqueCountriesSet = new Set();
-  const uniqueCountries = [];
-
-  for (const country of rawCountries) {
-    const normalized = country.trim().toLowerCase();
-    if (!uniqueCountriesSet.has(normalized)) {
-      uniqueCountriesSet.add(normalized);
-      uniqueCountries.push(country);
-    }
-  }
-
-  return uniqueCountries;
+  return response.json();
 };
 
 const fetchStates = async (country) => {
@@ -67,16 +53,9 @@ function CountrySection() {
     const loadCountries = async () => {
       try {
         const data = await fetchCountries();
+       
 
-        const seen = new Set();
-        const uniqueCountries = data.filter((country) => {
-          const normalized = country.trim().toLowerCase();
-          if (seen.has(normalized)) return false;
-          seen.add(normalized);
-          return true;
-        });
-
-        setCountries(uniqueCountries);
+        setCountries(data);
       } catch (err) {
         setError(err.message);
       }
