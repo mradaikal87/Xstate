@@ -4,12 +4,27 @@ import styles from "./CountrySection.module.css";
 const fetchCountries = async () => {
   const response = await fetch("https://crio-location-selector.onrender.com/countries");
   if (!response.ok) throw new Error("Failed to fetch countries");
-  return response.json();
+
+  const rawCountries = await response.json();
+
+  const uniqueCountriesSet = new Set();
+  const uniqueCountries = [];
+
+  for (const country of rawCountries) {
+    const normalized = country.trim().toLowerCase();
+    if (!uniqueCountriesSet.has(normalized)) {
+      uniqueCountriesSet.add(normalized);
+      uniqueCountries.push(country);
+    }
+  }
+
+  return uniqueCountries;
 };
 
 const fetchStates = async (country) => {
-  const response = await fetch(`https://crio-location-selector.onrender.com/countries`);
+  const response = await fetch("https://crio-location-selector.onrender.com/countries");
   if (!response.ok) throw new Error("Failed to fetch countries");
+
   const allCountries = await response.json();
 
   const matchingEntries = allCountries.filter(
@@ -25,9 +40,8 @@ const fetchStates = async (country) => {
     }
   }
 
-  return Array.from(stateSet); // return unique merged states
+  return Array.from(stateSet);
 };
-
 
 const fetchCities = async (country, state) => {
   const response = await fetch(
@@ -50,26 +64,25 @@ function CountrySection() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-  const loadCountries = async () => {
-    try {
-      const data = await fetchCountries();
+    const loadCountries = async () => {
+      try {
+        const data = await fetchCountries();
 
-      const seen = new Set();
-      const uniqueCountries = data.filter((country) => {
-        const normalized = country.trim().toLowerCase();
-        if (seen.has(normalized)) return false;
-        seen.add(normalized);
-        return true;
-      });
+        const seen = new Set();
+        const uniqueCountries = data.filter((country) => {
+          const normalized = country.trim().toLowerCase();
+          if (seen.has(normalized)) return false;
+          seen.add(normalized);
+          return true;
+        });
 
-      setCountries(uniqueCountries);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-  loadCountries();
-}, []);
-
+        setCountries(uniqueCountries);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+    loadCountries();
+  }, []);
 
   useEffect(() => {
     if (!selectedCountry) return;
@@ -105,7 +118,7 @@ function CountrySection() {
       }
     };
     loadCities();
-  }, [selectedCountry,selectedState]);
+  }, [selectedCountry, selectedState]);
 
   return (
     <div>
@@ -153,7 +166,7 @@ function CountrySection() {
       </select>
 
       {selectedCountry && selectedState && selectedCity && (
-        <p>
+        <p data-testid="selected-location">
           Selected: <strong>{`${selectedCity}, ${selectedState}, ${selectedCountry}`}</strong>
         </p>
       )}
