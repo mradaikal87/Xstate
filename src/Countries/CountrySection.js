@@ -79,7 +79,7 @@ function CountrySection() {
       }
     };
     loadCities();
-  }, [selectedState]);
+  }, [selectedCountry,selectedState]);
 
   return (
     <div>
