@@ -8,10 +8,26 @@ const fetchCountries = async () => {
 };
 
 const fetchStates = async (country) => {
-  const response = await fetch(`https://crio-location-selector.onrender.com/country=${country}/states`);
-  if (!response.ok) throw new Error("Failed to fetch states");
-  return response.json();
+  const response = await fetch(`https://crio-location-selector.onrender.com/countries`);
+  if (!response.ok) throw new Error("Failed to fetch countries");
+  const allCountries = await response.json();
+
+  const matchingEntries = allCountries.filter(
+    (item) => item.trim().toLowerCase() === country.trim().toLowerCase()
+  );
+
+  const stateSet = new Set();
+  for (const entry of matchingEntries) {
+    const res = await fetch(`https://crio-location-selector.onrender.com/country=${entry}/states`);
+    if (res.ok) {
+      const states = await res.json();
+      states.forEach((s) => stateSet.add(s));
+    }
+  }
+
+  return Array.from(stateSet); // return unique merged states
 };
+
 
 const fetchCities = async (country, state) => {
   const response = await fetch(
@@ -34,16 +50,26 @@ function CountrySection() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadCountries = async () => {
-      try {
-        const data = await fetchCountries();
-        setCountries(data);
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-    loadCountries();
-  }, []);
+  const loadCountries = async () => {
+    try {
+      const data = await fetchCountries();
+
+      const seen = new Set();
+      const uniqueCountries = data.filter((country) => {
+        const normalized = country.trim().toLowerCase();
+        if (seen.has(normalized)) return false;
+        seen.add(normalized);
+        return true;
+      });
+
+      setCountries(uniqueCountries);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+  loadCountries();
+}, []);
+
 
   useEffect(() => {
     if (!selectedCountry) return;
